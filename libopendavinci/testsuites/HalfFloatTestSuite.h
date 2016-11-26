@@ -111,10 +111,11 @@ class HalfFloatTest : public CxxTest::TestSuite {
         }
 
         void testHalfFloatEntropy() {
+            map<uint32_t, uint8_t> bitsUpToRange;
             map<uint32_t, float> mapOfDeltas;
             uint16_t unusedBits = 0xFFFF;
 
-            for(uint32_t i = 0; i < 10000; i++) {
+            for(uint32_t i = 200; i < 10000; i++) {
                 const float valueFloat = static_cast<float>(i) / 100.00f;
                 const half valueHalfFloat(valueFloat);
 
@@ -126,11 +127,29 @@ class HalfFloatTest : public CxxTest::TestSuite {
                 uint16_t valueAsUINT16 = 0;
                 sstr.read((char*)&valueAsUINT16, 2);
 
-                unusedBits = valueAsUINT16 ^ unusedBits;
+                unusedBits = (valueAsUINT16 & unusedBits) ^ unusedBits;
+                bitsUpToRange[i] = std::bitset<16>(unusedBits).count();
             }
 
-            for (auto it : mapOfDeltas) {
-                cout << it.first << ";" << it.second << endl;
+            for (auto it : bitsUpToRange) {
+                cout << it.first << ";" << +it.second << endl;
+            }
+
+            cout << unusedBits << " = " << std::bitset<16>(unusedBits) << endl;
+        }
+
+        void testWordEntropy() {
+            map<uint32_t, uint8_t> bitsUpToRange;
+            uint16_t unusedBits = 0xFFFF;
+
+            for(uint32_t i = 0; i < 10000; i++) {
+                uint16_t valueAsUINT16 = i;
+                unusedBits = (valueAsUINT16 & unusedBits) ^ unusedBits;
+                bitsUpToRange[i] = std::bitset<16>(unusedBits).count();
+            }
+
+            for (auto it : bitsUpToRange) {
+                cout << it.first << ";" << +it.second << endl;
             }
 
             cout << unusedBits << " = " << std::bitset<16>(unusedBits) << endl;
