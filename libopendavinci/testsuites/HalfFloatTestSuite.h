@@ -22,7 +22,11 @@
 
 #include "cxxtest/TestSuite.h"          // for TS_ASSERT, TestSuite
 
+#include <cmath>
+#include <algorithm>
+#include <bitset>
 #include <sstream>
+#include <map>
 
 #include "opendavinci/odcore/wrapper/half_float.h"
 
@@ -104,6 +108,32 @@ class HalfFloatTest : public CxxTest::TestSuite {
                  << ", b2_h = " << b2_h
                  << ", c2_h = " << c2_h
                  << ", d2_h = " << d2_h << endl;
+        }
+
+        void testHalfFloatEntropy() {
+            map<uint32_t, float> mapOfDeltas;
+            uint16_t unusedBits = 0xFFFF;
+
+            for(uint32_t i = 0; i < 10000; i++) {
+                const float valueFloat = static_cast<float>(i) / 100.00f;
+                const half valueHalfFloat(valueFloat);
+
+                const float delta = fabs(valueHalfFloat - valueFloat);
+                mapOfDeltas[i] = delta;
+
+                stringstream sstr;
+                sstr.write((char*)(&valueHalfFloat), 2);
+                uint16_t valueAsUINT16 = 0;
+                sstr.read((char*)&valueAsUINT16, 2);
+
+                unusedBits = valueAsUINT16 ^ unusedBits;
+            }
+
+            for (auto it : mapOfDeltas) {
+                cout << it.first << ";" << it.second << endl;
+            }
+
+            cout << unusedBits << " = " << std::bitset<16>(unusedBits) << endl;
         }
 };
 
